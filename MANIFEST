@@ -1,0 +1,13 @@
+Changes
+LICENSE
+MANIFEST
+META.yml
+Makefile.PL
+README
+lib/DustyDB.pm
+lib/DustyDB/Collection.pm
+lib/DustyDB/Key.pm
+lib/DustyDB/Model.pm
+lib/DustyDB/Record.pm
+t/basic.t
+t/collection.t
