@@ -1,5 +1,5 @@
 package DustyDB;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Moose;
 use MooseX::Types::Path::Class;
@@ -7,6 +7,7 @@ use MooseX::Types::Path::Class;
 use DBM::Deep;
 
 use DustyDB::Key;
+use DustyDB::Filter;
 use DustyDB::Model;
 use DustyDB::Record;
 use DustyDB::Collection;
@@ -17,7 +18,7 @@ DustyDB - yet another Moose-based object database
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 

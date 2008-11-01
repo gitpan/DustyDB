@@ -1,5 +1,5 @@
 package DustyDB::Collection;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Moose;
 
@@ -13,7 +13,7 @@ DustyDB::Collection - collections of records
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 

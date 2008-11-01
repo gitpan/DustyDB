@@ -1,5 +1,5 @@
 package DustyDB::Model;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Moose;
 
@@ -11,7 +11,7 @@ DustyDB::Model - model classes represent the tables in your database
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 
@@ -153,10 +153,68 @@ sub load {
             my $object = $other_model->load( %{ $params{ $attr->name } } );
             $params{ $attr->name } = $object;
         }
+
+        # Otherwise try to decode if needed
+        else {
+            $params{ $attr->name } 
+                = _perform_decode( $attr, $params{ $attr->name } );
+        }
     }
 
     # ... and serve
     return $self->class_name->new( %params );
+}
+
+=head2 load_or_create
+
+Load or create the object. It will use the keys in the given parameter hash to try and load an object. If that fails, it will use all the parameters to construct a new record and save it.
+
+=cut
+
+sub load_or_create {
+    my ($self, %params) = @_;
+
+    my $object = $self->load(%params);
+    return $object if defined $object;
+
+    return $self->create(%params);
+}
+
+=head2 load_and_update_or_create
+
+This is similar to L</load_or_create>, but it will also make sure that all of the passed parameters are set on the loaded object as well.
+
+=cut
+
+sub load_and_update_or_create {
+    my ($self, %params) = @_;
+
+    # Do we have one of these things already?
+    my $object = $self->load(%params);
+    if (defined $object) {
+
+        # Make sure the new values are set
+        for my $attr (values %{ $object->meta->get_attribute_map }) {
+            next if $attr->does('DustyDB::Key'); # Don't muck the key
+
+            # We want to set it to something
+            if (defined $params{ $attr->name }) {
+                $attr->set_value($object, $params{ $attr->name });
+            }
+
+            # We want to clear it, if set
+            else {
+                $attr->clear_value($object);
+            }
+
+            # Bake and serve
+            $object->save;
+            return $object;
+        }
+    }
+
+    # Nope, no such thing... make a thing
+    return $self->create(%params);
 }
 
 =head2 all
@@ -185,18 +243,24 @@ sub _build_key {
     # We have a record that needs to be decomposed
     if (blessed $_[0] and $_[0]->isa($self->class_name)) {
         for my $key (@{ $self->_primary_key($_[0]) }) {
-            $keys{ $key->name } = $key->get_value($_[0]);
+            $keys{ $key->name } 
+                = $key->perform_stringify($key->get_value($_[0]));
         }
     }
 
     # A single argument and a single column key
     elsif (@_ == 1 and @{ $self->_primary_key($self->class_name) } == 1) {
-        $keys{ $self->_primary_key($self->class_name)->[0]->name } = $_[0];
+        my $key = $self->_primary_key($self->class_name)->[0];
+        $keys{ $key->name } = $key->perform_stringify($_[0]);
     }
     
     # A multi-column key must be given with a hashref
     else {
-        %keys = @_;
+        my %params = @_;
+        for my $key (@{ $self->_primary_key($self->class_name) }) {
+            $keys{ $key->name } 
+                = $key->perform_stringify($params{ $key->name });
+        }
     }
 
     return \%keys;
@@ -215,6 +279,26 @@ sub _build_que {
     }
 
     return \@que;
+}
+
+sub _perform_encode {
+    my ($attr, $value) = @_;
+
+    if ($attr->does('DustyDB::Filter')) {
+        return $attr->perform_encode($value);
+    }
+
+    return $value;
+}
+
+sub _perform_decode {
+    my ($attr, $value) = @_;
+
+    if ($attr->does('DustyDB::Filter')) {
+        return $attr->perform_decode($value);
+    }
+
+    return $value;
 }
 
 sub save {
@@ -256,7 +340,7 @@ sub save {
         next if $attr->name eq 'model';
 
         # Load the value itself
-        my $value = $attr->get_value($record);
+        my $value = _perform_encode( $attr, $attr->get_value($record) );
 
         # Skip on undef since this can cause things to go amuck at load
         next unless defined $value;
