@@ -6,9 +6,11 @@ Makefile.PL
 README
 lib/DustyDB.pm
 lib/DustyDB/Collection.pm
-lib/DustyDB/Filter.pm
 lib/DustyDB/Key.pm
+lib/DustyDB/Meta/Attribute.pm
+lib/DustyDB/Meta/Class.pm
 lib/DustyDB/Model.pm
+lib/DustyDB/Object.pm
 lib/DustyDB/Record.pm
 t/basic.t
 t/collection.t

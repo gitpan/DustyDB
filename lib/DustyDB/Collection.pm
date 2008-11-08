@@ -1,5 +1,5 @@
 package DustyDB::Collection;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Moose;
 
@@ -13,15 +13,14 @@ DustyDB::Collection - collections of records
 
 =head1 VERSION
 
-version 0.02
+version 0.03
 
 =head1 SYNOPSIS
 
   package WhatsIt;
-  use Moose;
-  with 'DustyDB::Record';
+  use DustyDB::Object;
 
-  has bobble => ( is => 'rw', isa => 'Str', traits => [ 'DustyDB::Key' ] );
+  has key bobble => ( is => 'rw', isa => 'Str' );
   has bits   => ( is => 'rw', isa => 'Str', predicate => 'has_bits' );
 
   package main;
@@ -64,7 +63,7 @@ has model => (
     is => 'rw',
     isa => 'DustyDB::Model',
     required => 1,
-    handles => [ qw( class_name construct table init_table ) ],
+    handles => [ qw( db record_meta ) ],
 );
 
 =head2 filter_subroutine
@@ -147,12 +146,7 @@ C<$code_ref>. If a code reference is passed, this code reference is called for e
 sub _build_records {
     my $self = shift;
 
-    # Initialize the table in case it ain't
-    $self->init_table( $self->class_name );
-
-    # Get ready to read the database
-    my $model = $self->table( $self->class_name );
-    my @originals = map { $self->construct( %$_ ) } values %$model;
+    my @originals = $self->record_meta->list_all_objects( db => $self->db );
 
     # If we have a filter
     if ($self->has_filter_subroutine) {
@@ -196,7 +190,7 @@ sub filter {
         }
 
         # Did we get a method name?
-        elsif ($self->class_name->can($_[0])) {
+        elsif ($self->record_meta->has_method($_[0])) {
             my $method = $_[0];
 
             $self->filter_subroutine( sub {
@@ -218,6 +212,48 @@ sub filter {
     $self->records( $self->_build_records );
 
     return $self->contextual;
+}
+
+sub _hash_to_filter {
+    my $self   = shift;
+    my %params = @_;
+    my $attrs  = $self->record_meta->get_attribute_map;
+
+    # First, a sanity check 
+    for my $name (keys %params) {
+
+        # Don't filter if we can't filter
+        Carp::croak "$name is not an attribute of ", $self->class_name
+            unless defined $attrs->{ $name };
+    }
+
+    # Second, build the checker routine 
+    return sub {
+        my $result = 1;
+        while (my ($name, $match) = each %params) {
+
+            # TODO It would be lovely to have the smart match operator here, but
+            # I want this to work on 5.8 still. Perhaps have this for 5.8, but
+            # switch on ~~ if the compiler is 5.10?
+
+            # Handle a regex
+            if (ref $match and ref $match eq 'Regexp') {
+                $result &&= $_->{$name} =~ /$match/;
+            }
+
+            # Handle a number
+            elsif ($attrs->{ $name }->type_constraint->is_a_type_of('Num')) {
+                $result &&= $_->{$name} == $match;
+            }
+
+            # Handle any other scalar
+            else {
+                $result &&= $_->{$name} eq $match;
+            }
+        }
+
+        return $result;
+    };
 }
 
 =head2 count
@@ -300,48 +336,6 @@ Resets the record pointer used by L</next> so that the next call to that method 
 sub reset {
     my $self = shift;
     $self->iterator_index(0);
-}
-
-sub _hash_to_filter {
-    my $self   = shift;
-    my %params = @_;
-    my $attrs  = $self->class_name->meta->get_attribute_map;
-
-    # First, a sanity check 
-    for my $name (keys %params) {
-
-        # Don't filter if we can't filter
-        Carp::croak "$name is not an attribute of ", $self->class_name
-            unless defined $attrs->{ $name };
-    }
-
-    # Second, build the checker routine 
-    return sub {
-        my $result = 1;
-        while (my ($name, $match) = each %params) {
-
-            # TODO It would be lovely to have the smart match operator here, but
-            # I want this to work on 5.8 still. Perhaps have this for 5.8, but
-            # switch on ~~ if the compiler is 5.10?
-
-            # Handle a regex
-            if (ref $match and ref $match eq 'Regexp') {
-                $result &&= $_->{$name} =~ /$match/;
-            }
-
-            # Handle a number
-            elsif ($attrs->{ $name }->type_constraint->is_a_type_of('Num')) {
-                $result &&= $_->{$name} == $match;
-            }
-
-            # Handle any other scalar
-            else {
-                $result &&= $_->{$name} eq $match;
-            }
-        }
-
-        return $result;
-    };
 }
 
 =head2 contextual

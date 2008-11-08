@@ -1,5 +1,5 @@
 package DustyDB::Key;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Moose::Role;
 
@@ -9,16 +9,14 @@ DustyDB::Key - mark an attribute as being part of the primary key
 
 =head1 VERSION
 
-version 0.02
+version 0.03
 
 =head1 SYNOPSIS
 
   package MyModel;
-  use Moose;
+  use DustyDB::Object;
 
-  with 'DustyDB::Record';
-
-  has name => ( is => 'rw', isa => 'Str', traits => [ 'DustyDB::Key' ] );
+  has key name => ( is => 'rw', isa => 'Str' );
   has description => ( is => 'rw', isa => 'Str' );
 
 =head1 DESCRIPTION
@@ -31,10 +29,9 @@ This is a basic marker role that just notifies DustyDB that the attribute should
 
 This may be defined as a reference to a subroutine to be used to translate a non-scalar attribute into a scalar key value. For example, if you want to use a date via L<DateTime> as a key, you could do:
 
-  has timestamp => (
+  has key timestamp => (
      is => 'rw',
      isa => 'DateTime',
-     traits => [ 'DustyDB::Key' ],
      stringify => sub { $_->iso8601 },
   );
 

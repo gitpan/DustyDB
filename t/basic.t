@@ -7,24 +7,22 @@ basic.t - quick and dirty general test of things
 
 =cut
 
-use Test::More tests => 33;
+use Test::More tests => 40;
 use Test::Moose;
 use_ok('DustyDB');
 
 # Declare a model
 package Author;
-use Moose;
-with 'DustyDB::Record';
+use DustyDB::Object;
 
-has name => ( is => 'rw', isa => 'Str',   traits => [ 'DustyDB::Key' ] );
+has key name => ( is => 'rw', isa => 'Str' );
 
 # Declare another model
 package Book;
-use Moose;
-with 'DustyDB::Record';
+use DustyDB::Object;
 
-has title  => ( is => 'rw', isa => 'Str', traits => [ 'DustyDB::Key' ] );
-has author => ( is => 'rw', isa => 'Author' );
+has key title => ( is => 'rw', isa => 'Str' );
+has author    => ( is => 'rw', isa => 'Author' );
 
 # Get down to business
 package main;
@@ -33,6 +31,17 @@ package main;
 my $db = DustyDB->new( path => 't/basic.db' );
 ok($db, 'Loaded the database object');
 isa_ok($db, 'DustyDB');
+
+# Are the meta-classes the right kind of things?
+does_ok(Author->meta, 'DustyDB::Meta::Class');
+does_ok(Book->meta, 'DustyDB::Meta::Class');
+
+# Are the attributes teh right kind of things?
+does_ok(Author->meta->get_attribute_map->{name}, 'DustyDB::Meta::Attribute');
+does_ok(Author->meta->get_attribute_map->{name}, 'DustyDB::Key');
+does_ok(Book->meta->get_attribute_map->{title}, 'DustyDB::Meta::Attribute');
+does_ok(Book->meta->get_attribute_map->{title}, 'DustyDB::Key');
+does_ok(Book->meta->get_attribute_map->{author}, 'DustyDB::Meta::Attribute');
 
 # Get the model classes used to work with records
 my $author = $db->model('Author');
@@ -45,14 +54,13 @@ isa_ok($book, 'DustyDB::Model');
 
 {
     # Create a couple records
-    my $the_damian = Author->new( model => $author, name => 'Damian Conway' );
+    my $the_damian = $author->construct( name => 'Damian Conway' );
     ok($the_damian, 'Created an author');
     isa_ok($the_damian, 'Author');
     does_ok($the_damian, 'DustyDB::Record');
     is($the_damian->name, 'Damian Conway', 'name is correct');
 
-    my $pbp        = Book->new( 
-        model  => $book,
+    my $pbp        = $book->construct( 
         title  => 'Perl Best Practices', 
         author => $the_damian,
     );
