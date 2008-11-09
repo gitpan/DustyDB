@@ -1,5 +1,5 @@
 package DustyDB::Meta::Class;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Moose::Role;
 
@@ -13,7 +13,7 @@ DustyDB::Meta::Class - meta-class role for DustyDB::Record objects
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 DESCRIPTION
 

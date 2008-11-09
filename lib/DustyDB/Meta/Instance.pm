@@ -1,5 +1,5 @@
 package DustyDB::Meta::Instance;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Moose::Role;
 
@@ -11,7 +11,7 @@ DustyDB::Meta::Instance - helper for auto-vivifying model links on demand
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 DESCRIPTION
 

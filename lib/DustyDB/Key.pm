@@ -1,5 +1,5 @@
 package DustyDB::Key;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Moose::Role;
 
@@ -9,7 +9,7 @@ DustyDB::Key - mark an attribute as being part of the primary key
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 SYNOPSIS
 
@@ -34,8 +34,6 @@ This may be defined as a reference to a subroutine to be used to translate a non
      isa => 'DateTime',
      stringify => sub { $_->iso8601 },
   );
-
-You may also want to use this in combination with L<DustyDB::Filter> to provide encoders and decoders for your object.
 
 =cut
 

@@ -1,5 +1,5 @@
 package DustyDB::Model;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Moose;
 
@@ -9,7 +9,7 @@ DustyDB::Model - model classes represent the tables in your database
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 SYNOPSIS
 
