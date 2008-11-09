@@ -1,7 +1,9 @@
 package DustyDB::Meta::Attribute;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Moose::Role;
+
+use Scalar::Util qw( blessed );
 
 =head1 NAME
 
@@ -9,7 +11,7 @@ DustyDB::Meta::Attribute - Moose meta-class for DustyDB::Record attributes
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 DESCRIPTION
 
@@ -76,5 +78,6 @@ sub perform_decode {
     local $_ = $value;
     return $attr->decode->($value);
 }
+
 
 1;

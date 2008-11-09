@@ -9,7 +9,7 @@ WriteMakefile(
   NAME      => 'DustyDB',
   AUTHOR    => 'Andrew\ Sterling\ Hanenkamp\ \<hanenkamp\@cpan\.org\>',
   ABSTRACT  => 'dead simple database for simple storage',
-  VERSION   => '0.03',
+  VERSION   => '0.04',
   EXE_FILES => [ qw() ],
   (eval { ExtUtils::MakeMaker->VERSION(6.21) } ? (LICENSE => 'perl') : ()),
   PREREQ_PM    => {

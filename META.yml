@@ -9,4 +9,4 @@ requires:
   DBM::Deep: 0
   Moose: 0
   MooseX::Types::Path::Class: 0
-version: 0.03
+version: 0.04

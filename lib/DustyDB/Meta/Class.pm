@@ -1,9 +1,11 @@
 package DustyDB::Meta::Class;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Moose::Role;
 
 use Scalar::Util qw( blessed reftype );
+
+use DustyDB::FakeRecord;
 
 =head1 NAME
 
@@ -11,7 +13,7 @@ DustyDB::Meta::Class - meta-class role for DustyDB::Record objects
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 DESCRIPTION
 
@@ -77,22 +79,28 @@ sub load_object {
         # TODO use a non-saved marker role instead of this crass hack
         next if $attr->name eq 'db';
 
-        # If this is another record, load it first
-        if (defined $object_params{ $attr->name }
-                and ref $object_params{ $attr->name } 
-                and reftype $object_params{ $attr->name } eq 'HASH'
-                and defined $object_params{ $attr->name }{'class_name'}) {
+        # Load the value
+        my $value;
+        $value = $object_params{ $attr->name } 
+            if defined $object_params{ $attr->name };
 
-            my $class_name = $object_params{ $attr->name }{'class_name'};
+        # If this is another record, load it first
+        if (ref $value and reftype $value eq 'HASH'
+                and defined $value->{'class_name'}) {
+
+            my $class_name = $value->{'class_name'};
             my $other_model = $db->model( $class_name );
-            my $object = $other_model->load( %{ $object_params{ $attr->name } } );
-            $object_params{ $attr->name } = $object;
+            my $fake = DustyDB::FakeRecord->new(
+                model      => $other_model,
+                class_name => $class_name,
+                key        => $value->export,
+            );
+            $object_params{ $attr->name } = $fake;
         }
 
         # Otherwise try to decode if needed
-        elsif (defined $object_params{ $attr->name }) {
-            $object_params{ $attr->name } 
-                = $attr->perform_decode( $object_params{ $attr->name } );
+        elsif (defined $value) {
+            $object_params{ $attr->name } = $attr->perform_decode( $value );
         }
     }
 
@@ -208,7 +216,8 @@ sub save_object {
 
         # If this is another record, just store the key
         if (blessed $value and $value->can('does') and $value->does('DustyDB::Record')) {
-            $hash->{ $attr->name } = $value->save;
+            $hash->{ $attr->name } = $value->meta->_build_key($value);
+            $hash->{ $attr->name }{class_name} = $value->meta->name;
         }
 
         # Otherwise, store the thingy
@@ -220,8 +229,6 @@ sub save_object {
     # Save to the last que location
     $object->{$last_que} = $hash;
     
-    # Set the class name in the key, and return
-    $keys->{class_name} = $meta->name;
     return $keys;
 }
 

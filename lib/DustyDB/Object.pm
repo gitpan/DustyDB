@@ -1,5 +1,5 @@
 package DustyDB::Object;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Moose;
 use Moose::Util;
@@ -8,6 +8,7 @@ use Moose::Util::MetaRole;
 use DustyDB::Record;
 use DustyDB::Meta::Class;
 use DustyDB::Meta::Attribute;
+use DustyDB::Meta::Instance;
 
 use Moose::Exporter;
 
@@ -22,7 +23,7 @@ DustyDB::Object - use this class to declare a model to store
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 SYNOPSIS
 
@@ -53,6 +54,7 @@ sub init_meta {
         for_class                 => $options{for_class},
         metaclass_roles           => [ 'DustyDB::Meta::Class' ],
         attribute_metaclass_roles => [ 'DustyDB::Meta::Attribute' ],
+        instance_metaclass_roles  => [ 'DustyDB::Meta::Instance' ],
     );
 
     Moose::Util::apply_all_roles($options{for_class}, 'DustyDB::Record');
