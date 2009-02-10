@@ -1,5 +1,5 @@
 package DustyDB::Object;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Moose;
 use Moose::Util;
@@ -23,7 +23,7 @@ DustyDB::Object - use this class to declare a model to store
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 

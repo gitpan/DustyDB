@@ -1,5 +1,5 @@
 package DustyDB::FakeRecord;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Moose;
 
@@ -9,7 +9,7 @@ DustyDB::FakeRecord - helper class for dealing with deferred loading
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 DESCRIPTION
 

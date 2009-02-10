@@ -1,5 +1,5 @@
 package DustyDB::Meta::Class;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Moose::Role;
 
@@ -13,7 +13,7 @@ DustyDB::Meta::Class - meta-class role for DustyDB::Record objects
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 DESCRIPTION
 
@@ -74,15 +74,20 @@ sub load_object {
     }
 
     # Bake the model
-    my %object_params = ( %$object, db => $db );
+    return $meta->_build_object( db => $db, record => $object->export );
+}
+
+sub _build_object {
+    my ($meta, %params) = @_;
+    my $db     = $params{db};
+    my $record = $params{record};
+
     for my $attr (values %{ $meta->get_attribute_map }) {
-        # TODO use a non-saved marker role instead of this crass hack
-        next if $attr->name eq 'db';
 
         # Load the value
         my $value;
-        $value = $object_params{ $attr->name } 
-            if defined $object_params{ $attr->name };
+        $value = $record->{ $attr->name } 
+            if defined $record->{ $attr->name };
 
         # If this is another record, load it first
         if (ref $value and reftype $value eq 'HASH'
@@ -93,19 +98,19 @@ sub load_object {
             my $fake = DustyDB::FakeRecord->new(
                 model      => $other_model,
                 class_name => $class_name,
-                key        => $value->export,
+                key        => $value,
             );
-            $object_params{ $attr->name } = $fake;
+            $record->{ $attr->name } = $fake;
         }
 
         # Otherwise try to decode if needed
         elsif (defined $value) {
-            $object_params{ $attr->name } = $attr->perform_decode( $value );
+            $record->{ $attr->name } = $attr->perform_decode( $value );
         }
     }
 
     # ... and serve
-    return $meta->new_object( %object_params );
+    return $meta->new_object( %$record, db => $db );
 }
 
 sub _build_key {
@@ -287,12 +292,25 @@ sub list_all_objects {
     # Initialize the table in case it ain't
     $db->init_table( $meta->name );
 
-    # Read the database
-    my $model = $db->table( $meta->name );
-    my @records = map { $meta->new_object( db => $db, %$_ ) } 
-                  values %$model;
+    # Just return now if the table is empty
+    my $table = $db->table( $meta->name );
+    return () unless scalar %$table;
 
-    return @records;
+    # Setup the initial structure before delving deeper
+    my @records = values %$table;
+    my @primary_key = @{ $meta->primary_key };
+    pop @primary_key;
+
+    # For multi-attribute keys, delve deeper until we run out of keys
+    for my $attr (@primary_key) {
+        @records = map { defined $_ ? values %$_ : () } @records;
+    }
+
+    # Convert keys to records
+    my @objects = map  { $meta->_build_object( db => $db, record => $_->export ) } 
+                  grep { defined $_ } @records;
+
+    return @objects;
 }
 
 1;

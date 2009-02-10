@@ -1,5 +1,5 @@
 package DustyDB::Key;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Moose::Role;
 
@@ -9,7 +9,7 @@ DustyDB::Key - mark an attribute as being part of the primary key
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 

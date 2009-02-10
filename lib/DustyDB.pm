@@ -1,5 +1,5 @@
 package DustyDB;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Moose;
 use MooseX::Types::Path::Class;
@@ -17,7 +17,7 @@ DustyDB - yet another Moose-based object database
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 

@@ -6,7 +6,7 @@ generated_by: Dist::Zilla::Plugin::MetaYaml version 1.003
 license: perl
 name: DustyDB
 requires: 
-  DBM::Deep: 0
+  DBM::Deep: 1.0015
   Moose: 0
   MooseX::Types::Path::Class: 0
-version: 0.05
+version: 0.06

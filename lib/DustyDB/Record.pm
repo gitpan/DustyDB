@@ -1,5 +1,5 @@
 package DustyDB::Record;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Moose::Role;
 
@@ -9,7 +9,7 @@ DustyDB::Record - role for DustyDB models
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
